@@ -1,0 +1,26 @@
+{
+  "name": "ts-sample-client-server",
+  "version": "0.1.0",
+  "description": "Sample Inkbox webhook receiver + phone-media WebSocket server using @inkbox/sdk in TypeScript.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@inkbox/sdk": "file:/home/ec2-user/inkbox/sdk/typescript",
+    "dotenv": "^16.4.5",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.21.0",
+    "typescript": "^5.4.0"
+  }
+}

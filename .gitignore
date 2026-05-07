@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+payloads/
+.inkbox-tunnel-state*/
+*.log
+.vscode/
+.idea/
