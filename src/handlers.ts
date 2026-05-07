@@ -159,6 +159,10 @@ export const httpHandler: InkboxHandler = async (req, _ctx) => {
 
 /** WebSocket handler: /phone/media/ws. Branches on USE_OPENAI_REALTIME. */
 export const wsHandler: InkboxWsHandler = async (ws: InkboxWebSocket) => {
+  // INSTRUMENTATION: log on entry so we can tell whether the SDK
+  // dispatched to us at all. If this line never appears, the SDK's
+  // CallableDispatch.dispatchWebSocket isn't being called.
+  console.log(`[ws] handler entered url=${ws.url} offered=${ws.offeredProtocols.join(",") || "<none>"}`);
   const url = new URL(ws.url, "https://placeholder.local");
   if (url.pathname !== "/phone/media/ws") {
     await ws.close(1003, "unknown-path");
@@ -166,6 +170,7 @@ export const wsHandler: InkboxWsHandler = async (ws: InkboxWebSocket) => {
   }
 
   if (env.USE_OPENAI_REALTIME) {
+    console.log("[ws] calling ws.accept() with realtime headers");
     await ws.accept({ headers: WS_HANDSHAKE_HEADERS_REALTIME });
     console.log("[ws] /phone/media/ws accepted (OpenAI Realtime bridge)");
     const callId = ws.headers.get("x-inkbox-call-id") ?? "unknown";
