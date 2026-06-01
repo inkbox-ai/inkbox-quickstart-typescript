@@ -33,7 +33,7 @@ Requires Node ≥22.
 ```bash
 # nvm
 nvm use 22
-# install deps (the SDK is linked in via file:/home/ec2-user/inkbox/sdk/typescript)
+# install deps (pulls @inkbox/sdk from the npm registry)
 npm install
 # fill in .env
 cp .env.example .env
@@ -44,9 +44,9 @@ npm start
 
 ## Notes
 
-- The SDK is referenced as `file:/home/ec2-user/inkbox/sdk/typescript`
-  in `package.json` so local SDK changes pick up on `npm install`. Swap
-  to a registry version before sharing this branch.
+- `@inkbox/sdk` is pinned to a registry release in `package.json`. Swap
+  to `file:/path/to/inkbox/sdk/typescript` temporarily if you need to
+  test unreleased SDK changes.
 - `payloads/` is gitignored. So is `.inkbox-tunnel-state*/`.
 - The tunnel's `publicHost` is `{INKBOX_TUNNEL_NAME}.{INKBOX_TUNNEL_ZONE}` —
   e.g. for dev, set `INKBOX_TUNNEL_ZONE=development.inkboxwire.com`.

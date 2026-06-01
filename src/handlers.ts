@@ -14,6 +14,11 @@ import { join } from "node:path";
 
 import { verifyWebhook } from "@inkbox/sdk";
 import type {
+  MailWebhookPayload,
+  PhoneIncomingCallWebhookPayload,
+  TextWebhookPayload,
+} from "@inkbox/sdk";
+import type {
   InkboxHandler,
   InkboxWebSocket,
   InkboxWsHandler,
@@ -77,35 +82,38 @@ function tryParseJson(body: Uint8Array): unknown {
 }
 
 function logSummary(payload: unknown): void {
-  const p = payload as {
-    event_type?: string;
-    status?: string;
-    id?: string;
-    local_phone_number?: string;
-    remote_phone_number?: string;
-    data?: {
-      message?: { from_address?: string; subject?: string; status?: string };
-      from_phone_number?: string;
-      to_phone_number?: string;
-      text?: string;
-    };
-  };
-  if (p?.event_type === "message.received") {
-    const m = p.data?.message;
+  const p = payload as
+    | MailWebhookPayload
+    | TextWebhookPayload
+    | PhoneIncomingCallWebhookPayload
+    | Record<string, unknown>;
+  const contactNames = (cs?: ReadonlyArray<{ name?: string }>): string =>
+    (cs ?? []).map((c) => c.name).filter(Boolean).join(", ") || "<none>";
+  const event_type = (p as { event_type?: string }).event_type;
+
+  if (event_type === "message.received") {
+    const mp = p as MailWebhookPayload;
     console.log(
-      `[mail] message.received from=${m?.from_address} subject=${JSON.stringify(m?.subject)} status=${m?.status}`,
+      `[mail] message.received from=${mp.data.message.from_address} subject=${JSON.stringify(mp.data.message.subject)} status=${mp.data.message.status} contacts=${contactNames(mp.data.contacts)}`,
     );
-  } else if (p?.status === "ringing" && p?.local_phone_number) {
-    console.log(
-      `[phone] incoming_call id=${p.id} from=${p.remote_phone_number} -> ${p.local_phone_number}`,
-    );
-  } else if (p?.event_type?.startsWith?.("text.")) {
-    console.log(
-      `[text] ${p.event_type} from=${p.data?.from_phone_number} -> ${p.data?.to_phone_number} text=${JSON.stringify(p.data?.text ?? "")}`,
-    );
-  } else {
-    console.log(`[webhook] event_type=${JSON.stringify(p?.event_type ?? "?")}`);
+    return;
   }
+  if (event_type?.startsWith("text.")) {
+    const tp = p as TextWebhookPayload;
+    const t = tp.data.text_message;
+    console.log(
+      `[text] ${event_type} from=${t.remote_phone_number} -> ${t.local_phone_number} text=${JSON.stringify(t.text ?? "")} contacts=${contactNames(tp.data.contacts)}`,
+    );
+    return;
+  }
+  if ((p as PhoneIncomingCallWebhookPayload).status === "ringing" && (p as PhoneIncomingCallWebhookPayload).local_phone_number) {
+    const cp = p as PhoneIncomingCallWebhookPayload;
+    console.log(
+      `[phone] incoming_call id=${cp.id} from=${cp.remote_phone_number} -> ${cp.local_phone_number} contacts=${contactNames(cp.contacts)}`,
+    );
+    return;
+  }
+  console.log(`[webhook] event_type=${JSON.stringify(event_type ?? "?")}`);
 }
 
 /** HTTP handler: /webhook (everything else 404). */
