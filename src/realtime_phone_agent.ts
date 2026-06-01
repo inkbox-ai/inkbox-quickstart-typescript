@@ -44,7 +44,6 @@ export async function runRealtimeBridge(opts: RuntimeOpts): Promise<void> {
   const openai = new WebSocket(`wss://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      "OpenAI-Beta": "realtime=v1",
     },
   });
 
@@ -61,16 +60,23 @@ export async function runRealtimeBridge(opts: RuntimeOpts): Promise<void> {
   await sendOpenAI({
     type: "session.update",
     session: {
-      modalities: ["audio", "text"],
+      type: "realtime",
+      output_modalities: ["audio"],
       instructions: REALTIME_SYSTEM_PROMPT,
-      voice: REALTIME_VOICE,
-      input_audio_format: "g711_ulaw",
-      output_audio_format: "g711_ulaw",
-      turn_detection: {
-        type: "server_vad",
-        threshold: 0.5,
-        prefix_padding_ms: 300,
-        silence_duration_ms: 600,
+      audio: {
+        input: {
+          format: { type: "audio/pcmu" },
+          turn_detection: {
+            type: "server_vad",
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 600,
+          },
+        },
+        output: {
+          format: { type: "audio/pcmu" },
+          voice: REALTIME_VOICE,
+        },
       },
     },
   });
@@ -99,7 +105,7 @@ export async function runRealtimeBridge(opts: RuntimeOpts): Promise<void> {
           console.log(`[realtime ${callId}] openai event type=${etype}`);
         }
 
-        if (etype === "response.audio.delta" && evt.delta) {
+        if (etype === "response.output_audio.delta" && evt.delta) {
           audioOutCount += 1;
           if ([1, 5, 50].includes(audioOutCount)) {
             console.log(
@@ -119,7 +125,7 @@ export async function runRealtimeBridge(opts: RuntimeOpts): Promise<void> {
           return;
         }
 
-        if (etype === "response.audio.done") {
+        if (etype === "response.output_audio.done") {
           const out: Record<string, unknown> = { event: "audio_done" };
           if (streamId) out.stream_id = streamId;
           try {

@@ -32,9 +32,7 @@ async function main(): Promise<void> {
     name: env.INKBOX_TUNNEL_NAME,
     handler: httpHandler,
     wsHandler,
-    tlsMode: env.INKBOX_TUNNEL_TLS_MODE,
     stateDir: env.INKBOX_TUNNEL_STATE_DIR,
-    secret: env.INKBOX_TUNNEL_SECRET || undefined,
     dataPlaneZone: env.INKBOX_TUNNEL_ZONE || undefined,
     onStatus: (status) => console.log(`[tunnel-status] ${status}`),
   });
