@@ -77,3 +77,22 @@ test("incoming-call action remains separate", async () => {
   await patchInkboxObjectsToTunnel(s.client, "example.test", "configured");
   assert.deepEqual(s.calls, [{ incomingCallWebhookUrl: url, clientWebsocketUrl: "wss://example.test/phone/media/ws", incomingCallAction: "webhook" }]);
 });
+test("legacy split coverage is adopted without replacement", async () => {
+  const s = setup([[row({ agentIdentityId: null, eventTypes: ["message.received"] }),
+    row({ id: "text", agentIdentityId: null, eventTypes: ["text.received"], contextConfig: { email: null, texts: null, calls: null } })]]);
+  await ensureReceivedSubscription(s.client, "identity", url);
+  assert.deepEqual([s.updates, s.creates], [[], []]);
+});
+test("different legacy contexts remain ambiguous", async () => {
+  const s = setup([[row({ eventTypes: ["message.received"], contextConfig: { email: { mode: "count", count: 2 } } }),
+    row({ id: "text", eventTypes: ["text.received"], contextConfig: null })]]);
+  await assert.rejects(ensureReceivedSubscription(s.client, "identity", url), /ambiguous/);
+  assert.deepEqual([s.updates, s.creates], [[], []]);
+});
+test("deleted during update rereads merged survivor", async () => {
+  const s = setup([[row()], [row({ id: "survivor", eventTypes: ["message.received", "text.received"] })]]);
+  s.subs.update = async () => { throw new InkboxAPIError(404, "deleted"); };
+  await ensureReceivedSubscription(s.client, "identity", url);
+  assert.equal(s.reads(), 2);
+  assert.deepEqual(s.creates, []);
+});

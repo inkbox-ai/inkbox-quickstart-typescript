@@ -13,10 +13,22 @@ export async function ensureReceivedSubscription(
     const matches = rows.filter((s) => s.url === url);
     // This receiver authenticates signatures, not delivery bearer tokens. Do not
     // take over another configuration or guess between distinct contexts.
-    if (matches.length > 1 || matches.some((s) =>
+    if (matches.some((s) =>
       (s.agentIdentityId ?? s.ownerIdentityId) !== agentIdentityId ||
       s.hasAuthToken || s.authToken != null)) {
       throw new Error("Webhook destination has an ambiguous owner or configuration; reconcile it before startup.");
+    }
+    if (matches.length > 1) {
+      // Existing split subscriptions can cover this receiver without choosing a survivor.
+      const contexts = matches.map((row) => JSON.stringify(
+        (["email", "texts", "calls"] as const).map((key) => {
+          const value = row.contextConfig?.[key];
+          return value ? [value.mode, value.mode === "count" ? value.count : value.hours] : null;
+        }),
+      ));
+      const covered = new Set(matches.flatMap((row) => row.eventTypes));
+      if (RECEIVED_EVENTS.every((event) => covered.has(event)) && contexts.every((context) => context === contexts[0])) return;
+      throw new Error("Webhook destination has ambiguous event coverage or contexts; reconcile it before startup.");
     }
     const match = matches[0];
     try {
@@ -34,7 +46,7 @@ export async function ensureReceivedSubscription(
       }
       return;
     } catch (error) {
-      if (!(error instanceof InkboxAPIError) || error.statusCode !== 409) throw error;
+      if (!(error instanceof InkboxAPIError) || ![404, 409].includes(error.statusCode)) throw error;
     }
   }
   throw new Error("Webhook configuration changed repeatedly; retry startup after concurrent edits finish.");
