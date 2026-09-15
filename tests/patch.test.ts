@@ -96,3 +96,9 @@ test("deleted during update rereads merged survivor", async () => {
   assert.equal(s.reads(), 2);
   assert.deepEqual(s.creates, []);
 });
+test("capacity conflict is actionable without retries", async () => {
+  const s = setup([[]]);
+  s.subs.create = async () => { throw new InkboxAPIError(409, "Owner already has 20 active webhook subscriptions (max 20). Delete one before creating another."); };
+  await assert.rejects(ensureReceivedSubscription(s.client, "identity", url), /max 20/);
+  assert.equal(s.reads(), 1);
+});

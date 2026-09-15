@@ -47,6 +47,7 @@ export async function ensureReceivedSubscription(
       return;
     } catch (error) {
       if (!(error instanceof InkboxAPIError) || ![404, 409].includes(error.statusCode)) throw error;
+      if (/active webhook subscriptions/i.test(error.message)) throw error;
     }
   }
   throw new Error("Webhook configuration changed repeatedly; retry startup after concurrent edits finish.");
