@@ -53,6 +53,6 @@ npm start
 
 ## Identity webhook setup
 
-Requires SDK 0.6.12 and an API supporting identity-owned subscriptions and revision-checked updates. Startup subscribes the configured identity to `message.received` and `text.received`, even before either channel is provisioned. It preserves additional events, context, and unrelated destinations; concurrent changes are re-read before retrying. Ambiguous existing configurations fail startup without deleting subscriptions. Incoming-call routing is configured separately when the identity has a phone or iMessage. Existing signing keys are never rotated.
+Requires SDK 0.7.1 and an API supporting identity-owned subscriptions and revision-checked updates. Startup subscribes the configured identity to `message.received` and `text.received`, even before either channel is provisioned. It preserves additional events, context, and unrelated destinations; concurrent changes are re-read before retrying. Ambiguous existing configurations fail startup without deleting subscriptions. Incoming-call routing is configured separately when the identity has a phone or iMessage. Existing signing keys are never rotated.
 
-The npm lock records the exact 0.6.12 release artifact integrity. Registry installs require that SDK release first; local validation used the matching packed SDK artifact. After publication, run `npm ci`, `npm run build`, and `npm test`.
+The npm lock records the exact 0.7.1 release artifact integrity. Registry installs require that SDK release first; local validation used the matching packed SDK artifact. After publication, run `npm ci`, `npm run build`, and `npm test`.
