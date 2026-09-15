@@ -10,10 +10,11 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
-    "@inkbox/sdk": "^0.4.8",
+    "@inkbox/sdk": "0.6.12",
     "dotenv": "^16.4.5",
     "ws": "^8.18.0"
   },

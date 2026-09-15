@@ -6,7 +6,7 @@
  *      in-process HTTP + WS handlers (no separate uvicorn/express
  *      process needed; the SDK runtime dispatches scopes directly into
  *      our handlers).
- *   3. Patch all org phone numbers + mailboxes to the tunnel host so
+ *   3. Configure only the tunnel identity at the tunnel host so
  *      real Inkbox traffic flows back here.
  *   4. Block on `listener.wait()` until SIGTERM/SIGINT.
  */
@@ -42,7 +42,7 @@ async function main(): Promise<void> {
   const publicHost = new URL(listener.publicUrl).host;
   console.log(`Tunnel ready at ${listener.publicUrl}`);
 
-  await patchInkboxObjectsToTunnel(inkbox, publicHost);
+  await patchInkboxObjectsToTunnel(inkbox, publicHost, env.INKBOX_TUNNEL_NAME);
 
   console.log("Waiting for traffic. Ctrl-C to stop.");
   await listener.wait();

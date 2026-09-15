@@ -87,7 +87,7 @@ function logSummary(payload: unknown): void {
     | TextWebhookPayload
     | PhoneIncomingCallWebhookPayload
     | Record<string, unknown>;
-  const contactNames = (cs?: ReadonlyArray<{ name?: string }>): string =>
+  const contactNames = (cs?: ReadonlyArray<{ name?: string | null }>): string =>
     (cs ?? []).map((c) => c.name).filter(Boolean).join(", ") || "<none>";
   const event_type = (p as { event_type?: string }).event_type;
 
